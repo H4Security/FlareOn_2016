@@ -9,17 +9,16 @@ int main()
 //
 // hProv:           Handle to a cryptographic service provider (CSP). 
 //                  This example retrieves the default provider for  
-//                  the PROV_RSA_FULL provider type.  
+//                  the PROV_RSA_AES provider type.  
 // hHash:           Handle to the hash object needed to create a hash.
 // hKey:            Handle to a symmetric key. This example creates a 
 //                  key for the RC4 algorithm.
-// hHmacHash:       Handle to an HMAC hash.
+
 // pbHash:          Pointer to the hash.
 // dwDataLen:       Length, in bytes, of the hash.
 // Data1:           Password string used to create a symmetric key.
-// Data2:           Message string to be hashed.
-// HmacInfo:        Instance of an HMAC_INFO structure that contains 
-//                  information about the HMAC hash.
+// Data2:           Name of file that use as Iv.
+
 // 
 HCRYPTPROV  hProv       = NULL;
 HCRYPTHASH  hHash       = NULL;
@@ -189,11 +188,11 @@ if (!CryptSetKeyParam(
         NULL);
  BYTE DecryptMem[0x4011];
  DWORD NumberOfReading = 16;
- BOOLEAN finall=1;
- while (ReadFile(hFileRead,DecryptMem,0x4000,&NumberOfReading,NULL) && finall )
+ BOOLEAN finall=0;
+ while (ReadFile(hFileRead,DecryptMem,0x4000,&NumberOfReading,NULL) && !finall )
  {
 	 if (NumberOfReading < 0x4000)
-		finall =0;
+		finall =1;
 		 if (!CryptDecrypt(
 				hKey,                // handle of the HMAC hash object
 				0,                    // message to hash
@@ -217,67 +216,9 @@ if (!CryptSetKeyParam(
 		 NULL);
  }
 
- /*
 
-if (!CryptHashData(
-    hHmacHash,                // handle of the HMAC hash object
-    Data2,                    // message to hash
-    sizeof(Data2),            // number of bytes of data to add
-    0))                       // flags
-{
-   printf("Error in CryptHashData 0x%08x \n", 
-          GetLastError());
-   goto ErrorExit;
-}
-
-//--------------------------------------------------------------------
-// Call CryptGetHashParam twice. Call it the first time to retrieve
-// the size, in bytes, of the hash. Allocate memory. Then call 
-// CryptGetHashParam again to retrieve the hash value.
-
-if (!CryptGetHashParam(
-    hHmacHash,                // handle of the HMAC hash object
-    HP_HASHVAL,               // query on the hash value
-    NULL,                     // filled on second call
-    &dwDataLen,               // length, in bytes, of the hash
-    0))
-{
-   printf("Error in CryptGetHashParam 0x%08x \n", 
-          GetLastError());
-   goto ErrorExit;
-}
-
-pbHash = (BYTE*)malloc(dwDataLen);
-if(NULL == pbHash) 
-{
-   printf("unable to allocate memory\n");
-   goto ErrorExit;
-}
-    
-if (!CryptGetHashParam(
-    hHmacHash,                 // handle of the HMAC hash object
-    HP_HASHVAL,                // query on the hash value
-    pbHash,                    // pointer to the HMAC hash value
-    &dwDataLen,                // length, in bytes, of the hash
-    0))
-{
-   printf("Error in CryptGetHashParam 0x%08x \n", GetLastError());
-   goto ErrorExit;
-}
-
-// Print the hash to the console.
-
-printf("The hash is:  ");
-for(DWORD i = 0 ; i < dwDataLen ; i++) 
-{
-   printf("%2.2x ",pbHash[i]);
-}
-printf("\n");
-*/
-// Free resources.
 ErrorExit:
-    if(hHmacHash)
-        CryptDestroyHash(hHmacHash);
+    
     if(hKey)
         CryptDestroyKey(hKey);
     if(hHash)
